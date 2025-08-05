@@ -1,23 +1,23 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: percona-mongo
+  name: percona-psmdb-operator
   namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
     repoURL: https://percona.github.io/percona-helm-charts/
-    chart: psmdb-db
-    targetRevision: 1.20.1
-    helm:
-      valueFiles:
-        - values/mongo-values.yaml
+    targetRevision: 1.20.1 # Use the latest stable version
+    chart: psmdb-operator
   destination:
     server: https://kubernetes.default.svc
-    namespace: percona-mongo
+    namespace: percona-db-namespace
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true

@@ -1,0 +1,59 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: percona-psmdb
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/marwan-ghonem/perconaDB.git # Your Git repository
+    targetRevision: main # Or the branch you are using
+    path: argo-apps/psmdb-db-values.yaml # Path to your values file
+    helm:
+      values: |
+        # Use the Percona Server for MongoDB chart
+        chart: psmdb-db
+        
+        # This section corresponds to the PerconaServerMongoDB Custom Resource
+        replsets:
+          - name: rs0
+            size: 3 # Deploy 3 nodes for a replica set
+            # Define resource requests and limits for each pod
+            resources:
+              limits:
+                cpu: "2"
+                memory: "4Gi"
+              requests:
+                cpu: "2"
+                memory: "4Gi"
+            
+            # Configure node affinity using nodeSelector and tolerations
+            nodeSelector:
+              dedicated: mongo
+            
+            tolerations:
+              - key: "mongo"
+                operator: "Equal"
+                value: "true"
+                effect: "NoExecute"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: percona-db-namespace
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      # Add this to ignore secrets that are created with random passwords
+      - ApplyOutOfSyncOnly=true
+    # Ignore differences in specific fields that the operator might manage
+    ignoreDifferences:
+      - group: ""
+        kind: Secret
+        jsonPointers:
+          - /data
+
