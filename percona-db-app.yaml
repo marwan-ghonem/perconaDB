@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: percona-db-{{.Values.dbName}}
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://percona.github.io/percona-helm-charts/  # Percona's Helm chart repo
+    targetRevision: <helm_chart_version>  # Specify the version of the chart
+    chart: <chart_name>  # e.g., pxc-operator, psmdb-operator, postgres-operator
+    helm:
+      values: |
+        # Your Helm values here. These will override the chart's default values.
+        # Example for Percona XtraDB Cluster Operator:
+        watchNamespace: ""
+        # Example for Percona XtraDB Cluster itself:
+        pxc:
+          size: 3
+          secrets:
+            users:
+              - name: percona-xtradb-cluster-user-secrets
+                key: users
+          cluster:
+            name: my-pxc-cluster
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: percona-db-namespace  # The namespace for your database
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
