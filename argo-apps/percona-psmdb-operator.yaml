@@ -2,6 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: percona-psmdb-operator
+  # The namespace where the ArgoCD application resource itself lives
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -13,7 +14,8 @@ spec:
     chart: psmdb-operator
   destination:
     server: https://kubernetes.default.svc
-    namespace: percona-db-namespace
+    # The namespace where the Percona Operator pods will be deployed
+    namespace: percona-operator
   syncPolicy:
     automated:
       prune: true
