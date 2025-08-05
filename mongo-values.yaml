@@ -1,0 +1,30 @@
+psmdb:
+  enabled: true
+  replicaSet: true
+  size: 3
+  resources:
+    requests:
+      cpu: "2"
+      memory: "4Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: dedicated
+                operator: In
+                values:
+                  - mongod4
+  tolerations:
+    - key: "mongod4"
+      operator: "Equal"
+      value: "true"
+      effect: "NoExecute"
+
+image:
+  repository: percona/percona-server-mongodb
+  tag: 8.0.3
+  pullPolicy: IfNotPresent
